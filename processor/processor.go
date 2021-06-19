@@ -6,11 +6,13 @@ import (
 	"sync"
 )
 
-func Process(urls <-chan string) <-chan int {
-	ports := make([]int, 1024)
-	result := make(chan int)
+const portRange = 500
 
-	for i := 0; i < 1024; i++ {
+func Process(urls <-chan string) <-chan Result {
+	ports := make([]int, portRange)
+	result := make(chan Result)
+
+	for i := 0; i < portRange; i++ {
 		ports[i] = i + 1
 	}
 	go func() {
@@ -27,14 +29,16 @@ func Process(urls <-chan string) <-chan int {
 	return result
 }
 
-func process(port int, result chan<- int, urlRaw string, wg *sync.WaitGroup) {
+func process(port int, result chan<- Result, urlRaw string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	network := parseURLWithPort(urlRaw, port)
-
+	if network == "" {
+		return
+	}
 	_, err := net.Dial("tcp", network)
 	if err == nil {
-		result <- port
+		result <- createResult(port, urlRaw)
 	}
-	wg.Done()
 }
 
 func parseURLWithPort(urlRaw string, port int) string {
