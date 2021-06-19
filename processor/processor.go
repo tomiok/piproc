@@ -16,7 +16,7 @@ func Process(urls <-chan string) <-chan int {
 	go func() {
 		wg := &sync.WaitGroup{}
 		for urlRaw := range urls {
-			for port := range ports {
+			for _, port := range ports {
 				wg.Add(1)
 				go process(port, result, urlRaw, wg)
 			}
