@@ -6,14 +6,19 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"time"
 )
 
 func main() {
-	results := processor.Process(processor.Extract("urls.txt"))
+	now := time.Now()
 
+	results := processor.Process(processor.Extract("urls.txt"))
 	for result := range results {
-		fmt.Printf("%d open in host: %s \n", result.Port, result.Host)
+		fmt.Printf("port %d open in host: %s \n", result.Port, result.Host)
 	}
+	elapsed := time.Since(now)
+
+	fmt.Printf("process took %f seconds", elapsed.Seconds())
 }
 
 func profile() {
