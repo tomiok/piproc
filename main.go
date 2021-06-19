@@ -6,18 +6,27 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"strconv"
 	"time"
 )
 
 func main() {
 	now := time.Now()
+	profiling := os.Getenv("PROFILING")
+
+	b, _ := strconv.ParseBool(profiling)
+
+	if b {
+		profile()
+	}
 
 	results := processor.Process(processor.Extract("urls.txt"))
+
 	for result := range results {
 		fmt.Printf("port %d open in host: %s \n", result.Port, result.Host)
 	}
-	elapsed := time.Since(now)
 
+	elapsed := time.Since(now)
 	fmt.Printf("process took %f seconds", elapsed.Seconds())
 }
 
@@ -26,6 +35,6 @@ func profile() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pprof.StartCPUProfile(f)
+	_ = pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 }
