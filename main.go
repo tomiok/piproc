@@ -23,7 +23,11 @@ func main() {
 	results := processor.Process(processor.Extract("urls.txt"))
 
 	for result := range results {
-		fmt.Printf("port %d open in host: %s \n", result.Port, result.Host)
+		fmt.Printf("port %d open in host: %s with protocol %s \n",
+			result.Port,
+			result.Host,
+			result.Protocol,
+		)
 	}
 
 	elapsed := time.Since(now)

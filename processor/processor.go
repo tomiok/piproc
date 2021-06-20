@@ -6,7 +6,11 @@ import (
 	"sync"
 )
 
-const portRange = 500
+const portRange = 1024
+
+func getProtocols() []string {
+	return []string{"tcp", "udp"}
+}
 
 func Process(urls <-chan string) <-chan Result {
 	ports := make([]int, portRange)
@@ -30,15 +34,28 @@ func Process(urls <-chan string) <-chan Result {
 }
 
 func process(port int, result chan<- Result, urlRaw string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	network := parseURLWithPort(urlRaw, port)
-	if network == "" {
+	address := parseURLWithPort(urlRaw, port)
+	if address == "" {
+		wg.Done()
 		return
 	}
-	_, err := net.Dial("tcp", network)
-	if err == nil {
-		result <- createResult(port, urlRaw)
+
+	innerWG := &sync.WaitGroup{}
+	for _, protocol := range getProtocols() {
+		innerWG.Add(1)
+		go worker(innerWG, result, address, protocol, port)
 	}
+	innerWG.Wait()
+
+	wg.Done()
+}
+
+func worker(wg *sync.WaitGroup, result chan<- Result, address, protocol string, port int) {
+	_, err := net.Dial("tcp", address)
+	if err == nil {
+		result <- createResult(port, address, protocol)
+	}
+	wg.Done()
 }
 
 func parseURLWithPort(urlRaw string, port int) string {
