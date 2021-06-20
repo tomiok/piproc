@@ -31,7 +31,8 @@ func main() {
 	}
 
 	elapsed := time.Since(now)
-	fmt.Printf("process took %f seconds", elapsed.Seconds())
+	fmt.Printf("process took %f seconds \n", elapsed.Seconds())
+	fmt.Printf("total scans: %d", processor.Scans)
 }
 
 func profile() {

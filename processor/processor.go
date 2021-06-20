@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"sync/atomic"
 )
 
-const portRange = 1024
+const portRange = 5000
+
+var Scans int64
 
 func getProtocols() []string {
 	return []string{"tcp", "udp"}
@@ -51,10 +54,17 @@ func process(port int, result chan<- Result, urlRaw string, wg *sync.WaitGroup) 
 }
 
 func worker(wg *sync.WaitGroup, result chan<- Result, address, protocol string, port int) {
-	_, err := net.Dial("tcp", address)
-	if err == nil {
-		result <- createResult(port, address, protocol)
+	conn, err := net.Dial(protocol, address)
+	atomic.AddInt64(&Scans, 1)
+	if err != nil {
+		wg.Done()
+		return
 	}
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	result <- createResult(port, address, protocol)
 	wg.Done()
 }
 
