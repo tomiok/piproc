@@ -1,2 +1,1 @@
-scanme.nmap.org
-google.com
+anon.land

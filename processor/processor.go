@@ -5,9 +5,10 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
-const portRange = 5000
+const PortRange = 5000
 
 var Scans int64
 
@@ -16,10 +17,10 @@ func getProtocols() []string {
 }
 
 func Process(urls <-chan string) <-chan Result {
-	ports := make([]int, portRange)
+	ports := make([]int, PortRange)
 	result := make(chan Result)
 
-	for i := 0; i < portRange; i++ {
+	for i := 0; i < PortRange; i++ {
 		ports[i] = i + 1
 	}
 	go func() {
@@ -54,7 +55,7 @@ func process(port int, result chan<- Result, urlRaw string, wg *sync.WaitGroup) 
 }
 
 func worker(wg *sync.WaitGroup, result chan<- Result, address, protocol string, port int) {
-	conn, err := net.Dial(protocol, address)
+	conn, err := net.DialTimeout(protocol, address, 100*time.Millisecond)
 	atomic.AddInt64(&Scans, 1)
 	if err != nil {
 		wg.Done()
